@@ -1,4 +1,4 @@
-#Project requirements:
+# Project requirements:
 
 The current project is a simple booking web app for massage companies. It is done in django and angular and mysql.
 Admin can log in and set the available hours to book, manually and automatically according to opening hours.
