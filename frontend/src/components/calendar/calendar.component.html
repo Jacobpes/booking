@@ -1,0 +1,34 @@
+<div class="week-navigation">
+  <button (click)="goToPreviousWeek()">Previous Week</button>
+  <span class="current-date">{{ formatDate(currentDate) }}</span>
+  <button (click)="goToNextWeek()">Next Week</button>
+</div>
+
+<div class="duration-selection">
+  <select [(ngModel)]="selectedDuration">
+    <option value="30">30min - 30€</option>
+    <option value="45">45min - 40€</option>
+    <option value="60">60min - 50€</option>
+  </select>
+</div>
+
+<table class="week-table">
+  <thead>
+    <tr>
+      <th *ngFor="let day of daysInWeek">{{ day.date | date: 'EEE, d MMM' }}</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td *ngFor="let day of daysInWeek">
+        <div class="time-slots">
+          <div *ngFor="let timeSlot of timeSlots" class="time-slot">
+            {{ timeSlot }}
+          </div>
+        </div>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<app-booking-form></app-booking-form>

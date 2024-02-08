@@ -1,0 +1,30 @@
+/* Add your global styles here */
+
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+  }
+  
+  h1 {
+    color: #333;
+    text-align: center;
+  }
+
+  .logo {
+    display: block;
+    margin: 0 auto;
+    width: 200px;
+  }
+
+  .profile {
+    /* Round and small in the upper left corner */
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    border-radius: 50%;
+    width: 150px; /* Adjust based on desired size */
+    height: 150px; /* Adjust based on desired size */
+    object-fit: cover; /* Ensures the image is scaled correctly within the circle */
+  }
+  

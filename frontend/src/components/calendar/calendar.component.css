@@ -1,0 +1,59 @@
+.week-navigation {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.duration-selection {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.week-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.week-table th {
+  background-color: #f0f0f0;
+  color: #333;
+  padding: 10px;
+  text-align: center;
+}
+
+.week-table td {
+  border: 1px solid #ddd;
+  padding: 10px;
+  text-align: center;
+  vertical-align: top;
+}
+
+.time-slot {
+  background-color: #e7f4e4;
+  margin: 5px;
+  padding: 10px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.time-slot:hover {
+  background-color: #cfe8cc;
+}
+
+button {
+  background-color: #4CAF50; /* Green */
+  border: none;
+  color: white;
+  padding: 10px 20px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  margin: 4px 2px;
+  cursor: pointer;
+}
+
+select {
+  padding: 10px;
+  font-size: 16px;
+}
