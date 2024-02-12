@@ -30,8 +30,8 @@
 
 .time-slot {
   background-color: #e7f4e4;
-  margin: 5px;
-  padding: 10px;
+  margin: 1px;
+  padding: 3px; 
   cursor: pointer;
   transition: background-color 0.3s ease;
 }
