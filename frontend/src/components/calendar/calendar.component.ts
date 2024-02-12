@@ -20,11 +20,11 @@ export class CalendarComponent implements OnInit {
   }
 
   calculateDaysInWeek(): void {
-    this.daysInWeek = []; // Clear the array before calculating new week days
+    this.daysInWeek = [];
   
-    const currentDayOfWeek = this.currentDate.getDay(); // 0 for Sunday, 1 for Monday, etc.
+    const currentDayOfWeek = this.currentDate.getDay();
     const mondayDate = new Date(this.currentDate);
-    mondayDate.setDate(mondayDate.getDate() - currentDayOfWeek + (currentDayOfWeek === 0 ? -6 : 1)); // Adjust for Sunday
+    mondayDate.setDate(mondayDate.getDate() - currentDayOfWeek + (currentDayOfWeek === 0 ? -6 : 1));
   
     for (let i = 0; i < 7; i++) {
       const date = new Date(mondayDate);
@@ -39,13 +39,17 @@ export class CalendarComponent implements OnInit {
   }
 
   generateTimeSlots(): void {
+    this.timeSlots = []; // Clear existing time slots
     const startTime = new Date();
     startTime.setHours(9, 0, 0); // Start from 9:00 AM
 
-    for (let i = 0; i < 6; i++) {
-      const time = new Date(startTime.getTime() + i * 15 * 60 * 1000); // Increment by 15 minutes
-      const formattedTime = this.datePipe.transform(time, 'shortTime')!;
+    const endTime = new Date();
+    endTime.setHours(21, 0, 0); // End at 21:00 (9:00 PM)
+
+    while(startTime < endTime) {
+      const formattedTime = this.datePipe.transform(startTime, 'HH:mm')!; // Use 24-hour format
       this.timeSlots.push(formattedTime);
+      startTime.setMinutes(startTime.getMinutes() + 15); // Increment by 15 minutes
     }
   }
 
