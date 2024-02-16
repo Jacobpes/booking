@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { DatePipe } from '@angular/common';
+import { StateService } from 'src/app/services/state.service';
 
 @Component({
   selector: 'app-calendar',
@@ -13,7 +14,10 @@ export class CalendarComponent implements OnInit {
   selectedStartTime: string | null = null;
   selectedDay: Date | null = null;
 
-  constructor(private datePipe: DatePipe) { }
+  constructor(
+    private stateService: StateService,
+    private datePipe: DatePipe,
+    ) { }
 
   ngOnInit(): void {
     this.calculateDaysInWeek();
@@ -56,7 +60,9 @@ export class CalendarComponent implements OnInit {
   selectStartTime(day: Date, time: string): void {
     this.selectedDay = day;
     this.selectedStartTime = time;
+    this.stateService.setSelectedStartTime(time);
     this.updateSelectedSlots();
+    console.log(this.stateService.selectedStartTime, this.stateService.selectedDuration);
   }
 
   updateSelectedSlots(): void {
@@ -100,7 +106,9 @@ export class CalendarComponent implements OnInit {
   }
   selectDuration(duration: number): void {
     this.selectedDuration = duration;
+    this.stateService.setSelectedDuration(duration);
     this.updateSelectedSlots();
+    console.log(this.stateService.selectedStartTime, this.stateService.selectedDuration);
   }
   isToday(date: Date): boolean {
     const today = new Date();

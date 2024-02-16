@@ -9,6 +9,7 @@ import { BookingService } from '../../app/services/booking.service';
 export class BookingFormComponent {
   selectedTimeDate: Date = new Date();
   selectedDuration: number = 30;
+  selectedStartTime: string | null = null;
   booking = {
     name: '',
     email: '',
