@@ -3,8 +3,10 @@ package main
 import (
 	"log"
 	"os"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"golang.org/x/crypto/bcrypt"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -27,6 +29,39 @@ type BookingRequest struct {
 	OriginalPrice  float64 `json:"original_price"`
 	DiscountAmount float64 `json:"discount_amount,omitempty"` // Optional
 	FinalPrice     float64 `json:"final_price"`
+}
+
+type Massager struct {
+	gorm.Model
+	Name           string
+	Email          string `gorm:"unique"`
+	Phone          string
+	PasswordHash   string
+	Services       []Service `gorm:"many2many:massager_services;"`
+	Companies      []Company `gorm:"many2many:company_massagers;"`
+	Availabilities []Availability
+}
+
+type Company struct {
+	gorm.Model
+	Name      string
+	Address   string
+	Massagers []Massager `gorm:"many2many:company_massagers;"`
+}
+
+type Availability struct {
+	ID         uint `gorm:"primaryKey"`
+	MassagerID uint
+	StartTime  time.Time
+	EndTime    time.Time
+}
+
+// Many-to-Many relationship for Massager and Service (assuming you have a Service model)
+type Service struct {
+	gorm.Model
+	Name        string
+	Description string
+	Massagers   []Massager `gorm:"many2many:massager_services;"`
 }
 
 type Repository struct {
@@ -158,4 +193,61 @@ func (r *Repository) GetBookingsByMassager(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Could not fetch bookings for massager"})
 	}
 	return c.JSON(bookings)
+}
+
+// HashPassword hashes the given password using bcrypt.
+func HashPassword(password string) (string, error) {
+	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
+	return string(bytes), err
+}
+
+// RegisterMassager creates a new massager account with hashed password.
+func (r *Repository) RegisterMassager(c *fiber.Ctx) error {
+	var massager Massager
+	if err := c.BodyParser(&massager); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Cannot parse JSON"})
+	}
+
+	hashedPassword, err := HashPassword(massager.PasswordHash) // Assuming the request contains the password in PasswordHash
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Could not hash password"})
+	}
+	massager.PasswordHash = hashedPassword
+
+	if result := r.DB.Create(&massager); result.Error != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Could not register massager"})
+	}
+
+	return c.Status(fiber.StatusCreated).JSON(massager)
+}
+
+// CheckPasswordHash compares the plain password with the hashed password.
+func CheckPasswordHash(password, hash string) bool {
+	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
+	return err == nil
+}
+
+// LoginMassager checks massager credentials and returns a JWT if successful.
+func (r *Repository) LoginMassager(c *fiber.Ctx) error {
+	var loginInfo struct {
+		Email    string `json:"email"`
+		Password string `json:"password"`
+	}
+	if err := c.BodyParser(&loginInfo); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Cannot parse JSON"})
+	}
+
+	var massager Massager
+	if result := r.DB.Where("email = ?", loginInfo.Email).First(&massager); result.Error != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid login credentials"})
+	}
+
+	if !CheckPasswordHash(loginInfo.Password, massager.PasswordHash) {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid login credentials"})
+	}
+
+	// Generate JWT token (this part is simplified for demonstration)
+	token := "generated_jwt_token_here" // You should replace this with actual JWT generation logic
+
+	return c.JSON(fiber.Map{"message": "Login successful", "token": token})
 }
