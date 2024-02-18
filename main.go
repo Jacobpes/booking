@@ -5,6 +5,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/dgrijalva/jwt-go"
 	"github.com/gofiber/fiber/v2"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/driver/postgres"
@@ -62,6 +63,13 @@ type Service struct {
 	Name        string
 	Description string
 	Massagers   []Massager `gorm:"many2many:massager_services;"`
+}
+
+// Define a struct to encapsulate your claims. You can extend this struct with more fields as needed.
+type Claims struct {
+	MassagerID uint
+	Email      string `json:"email"`
+	jwt.StandardClaims
 }
 
 type Repository struct {
@@ -246,8 +254,35 @@ func (r *Repository) LoginMassager(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid login credentials"})
 	}
 
-	// Generate JWT token (this part is simplified for demonstration)
-	token := "generated_jwt_token_here" // You should replace this with actual JWT generation logic
+	// Generate JWT token for the authenticated user
+	tokenString, err := GenerateJWT(massager.ID, massager.Email)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to generate token"})
+	}
 
-	return c.JSON(fiber.Map{"message": "Login successful", "token": token})
+	return c.JSON(fiber.Map{"token": tokenString})
+}
+
+// Secret key used to sign the tokens. Ensure this is kept secure and not hard-coded in a real application.
+var jwtKey = []byte("jacobstad_secrets")
+
+// GenerateJWT generates a new JWT token for a given user.
+func GenerateJWT(massagerID uint, email string) (string, error) {
+	expirationTime := time.Now().Add(24 * time.Hour) // Token is valid for 1 day
+	claims := &Claims{
+		MassagerID: massagerID,
+		Email:      email,
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: expirationTime.Unix(),
+		},
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	tokenString, err := token.SignedString(jwtKey)
+
+	if err != nil {
+		return "", err
+	}
+
+	return tokenString, nil
 }
