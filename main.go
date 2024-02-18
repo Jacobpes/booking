@@ -41,6 +41,11 @@ func NewRepository(db *gorm.DB) *Repository {
 func (r *Repository) SetUpRoutes(app *fiber.App) {
 	api := app.Group("/api")
 	api.Post("/bookings", r.CreateBooking)
+	api.Get("/bookings", r.GetAllBookings)
+	api.Get("/bookings/:id", r.GetBookingByID)
+	api.Get("/massager/:massager_id/bookings", r.GetBookingsByMassager)
+	api.Put("/bookings/:id", r.UpdateBooking)
+	api.Delete("/bookings/:id", r.DeleteBooking)
 }
 
 func main() {
@@ -97,4 +102,60 @@ func (r *Repository) CreateBooking(c *fiber.Ctx) error {
 	}
 
 	return c.Status(fiber.StatusCreated).JSON(booking)
+}
+
+// GetAllBookings retrieves all bookings from the database.
+func (r *Repository) GetAllBookings(c *fiber.Ctx) error {
+	var bookings []BookingRequest
+	if result := r.DB.Find(&bookings); result.Error != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Could not fetch bookings"})
+	}
+	return c.JSON(bookings)
+}
+
+// GetBookingByID retrieves a booking by its ID.
+func (r *Repository) GetBookingByID(c *fiber.Ctx) error {
+	id := c.Params("id")
+	var booking BookingRequest
+	if result := r.DB.First(&booking, id); result.Error != nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "Booking not found"})
+	}
+	return c.JSON(booking)
+}
+
+// UpdateBooking updates the details of an existing booking.
+func (r *Repository) UpdateBooking(c *fiber.Ctx) error {
+	id := c.Params("id")
+	var booking BookingRequest
+	if err := r.DB.First(&booking, id).Error; err != nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "Booking not found"})
+	}
+
+	var update BookingRequest
+	if err := c.BodyParser(&update); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Cannot parse JSON"})
+	}
+
+	r.DB.Model(&booking).Updates(update)
+	return c.JSON(booking)
+}
+
+// DeleteBooking deletes a booking from the database.
+func (r *Repository) DeleteBooking(c *fiber.Ctx) error {
+	id := c.Params("id")
+	var booking BookingRequest
+	if result := r.DB.Delete(&booking, id); result.Error != nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "Booking not found"})
+	}
+	return c.SendStatus(fiber.StatusNoContent)
+}
+
+// GetBookingsByMassager retrieves all bookings for a specific massager.
+func (r *Repository) GetBookingsByMassager(c *fiber.Ctx) error {
+	massagerID := c.Params("massager_id")
+	var bookings []BookingRequest
+	if result := r.DB.Where("massager_id = ?", massagerID).Find(&bookings); result.Error != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Could not fetch bookings for massager"})
+	}
+	return c.JSON(bookings)
 }
