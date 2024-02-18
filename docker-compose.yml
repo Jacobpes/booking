@@ -1,0 +1,48 @@
+version: "3.8"
+services:
+  db:
+    image: postgres
+    restart: always
+    container_name: booking-db-container
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "5432:5432"
+    stdin_open: true
+    tty: true
+    volumes:
+      - db-data:/var/lib/postgresql/data
+
+  pgadmin:
+    image: dpage/pgadmin4
+    restart: always
+    container_name: pgadmin-container
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+    ports:
+      - "5050:80"
+    depends_on:
+      - db
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile # Ensure this Dockerfile exists in your Go app directory as previously described
+    restart: always
+    container_name: go-app-container
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      DB_HOST: ${DB_HOST}
+      # Add other environment variables your app may need
+    depends_on:
+      - db
+    ports:
+      - "8080:8080" # Adjust if your app serves on a different port
+
+volumes:
+  db-data:
