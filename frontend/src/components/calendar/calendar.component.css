@@ -91,14 +91,9 @@ select {
 }
 
 .today {
-  border: 2px solid #333; /* Adjust color and thickness as needed */
-  position: relative;
-}
-
-.highlight-date {
-  border: 2px solid red; /* Customize as needed */
-  padding: 5px;
-  border-radius: 5px; /* Optional, for rounded corners */
+  position: sticky;
+  top: 0;
+  box-shadow: inset 0 0 3px #000000;
 }
 
 /* BOOKING FORM CSS: */
@@ -163,4 +158,16 @@ select {
   background-color: #f2f2f2;
   border-radius: 4px;
   color: #555;
+}
+
+.week-table th {
+  position: sticky;
+  top: 0;
+  background-color: white; /* Ensures the text does not overlap with content below as you scroll */
+  z-index: 1; /* This ensures the header is above other content when it sticks. Adjust as necessary. */
+}
+
+.container-for-table {
+  height: 20rem; /* Example height; adjust based on your needs */
+  overflow-y: auto;
 }
