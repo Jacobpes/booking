@@ -60,7 +60,7 @@
   </div>
   <div *ngIf="selectedDay" class="form-group">
     <label for="timeLength">Selected time and date</label>
-    <p>From {{ selectedDay | date : 'dd/MM/yyyy HH:mm' }} to {{ (endingTime() | date : 'HH:mm') }}</p>
-  </div>
+    <p>From {{ selectedDay | date : 'dd/MM/yyyy HH:mm' }} to {{ selectedDay | date : 'dd/MM/yyyy ' }}{{selectedEndTime}}</p>
+  </div>  
   <button type="submit" [disabled]="bookingForm.invalid">Submit Booking</button>
 </form>

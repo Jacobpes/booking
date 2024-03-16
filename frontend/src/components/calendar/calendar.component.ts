@@ -1,6 +1,5 @@
 import { Component, OnInit } from '@angular/core';
 import { DatePipe } from '@angular/common';
-import { StateService } from 'src/app/services/state.service';
 
 @Component({
   selector: 'app-calendar',
@@ -23,10 +22,35 @@ export class CalendarComponent implements OnInit {
   bookingForm: any;
   dateToday = new Date();
   bookingService: any;
+  selectedEndTime: string | null = null; // New property to store selected end time as string
+
+  selectStartTime(day: Date, startTime: string): void {
+    this.selectedDay = new Date(day); // Clone to avoid mutating original date
+    const startHours = parseInt(startTime.split(':')[0]);
+    const startMinutes = parseInt(startTime.split(':')[1]);
+    this.selectedDay.setHours(startHours, startMinutes, 0);
+    this.selectedStartTime = startTime;
+    this.calculateEndTime(); // Calculate the ending time based on the selected start time and duration
+    this.updateSelectedSlots();
+  }
+
+  selectDuration(duration: number): void {
+    this.selectedDuration = duration;
+    if (this.selectedStartTime && this.selectedDay) {
+      this.calculateEndTime(); // Recalculate end time when duration changes
+    }
+    this.updateSelectedSlots();
+  }
+
+  calculateEndTime(): void {
+    if (this.selectedDay && this.selectedDuration) {
+      const endTime = new Date(this.selectedDay.getTime() + this.selectedDuration * 60000);
+      this.selectedEndTime = this.datePipe.transform(endTime, 'HH:mm')!;
+    }
+  }
 
 
   constructor(
-    private stateService: StateService,
     private datePipe: DatePipe,
     ) { }
 
@@ -68,16 +92,6 @@ export class CalendarComponent implements OnInit {
     return timeSlots;
   }
 
-  selectStartTime(day: Date, startTime: string): void {
-    // format selected day to set time to startTime string parameter
-    day.setHours(parseInt(startTime.split(':')[0]), parseInt(startTime.split(':')[1]), 0);
-    this.selectedDay = day;
-    this.selectedStartTime = startTime;
-    this.stateService.setSelectedStartTime(startTime);
-    this.stateService.setSelectedDay(day);
-    this.updateSelectedSlots();
-    console.log("Start time: ", this.stateService.selectedStartTime, "\n", this.stateService.selectedDuration, " minutes", "\n", this.stateService.selectedDay);
-  }
 
   updateSelectedSlots(): void {
     if (!this.selectedStartTime || !this.selectedDay) return;
@@ -116,12 +130,6 @@ export class CalendarComponent implements OnInit {
 
   formatDate(date: Date): string {
     return this.datePipe.transform(date, 'MMMM dd, yyyy')!;
-  }
-
-  selectDuration(duration: number): void {
-    this.selectedDuration = duration;
-    this.stateService.setSelectedDuration(duration);
-    this.updateSelectedSlots();
   }
 
   isToday(date: Date): boolean {
