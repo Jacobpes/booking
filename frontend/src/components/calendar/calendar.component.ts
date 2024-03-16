@@ -13,7 +13,46 @@ export class CalendarComponent implements OnInit {
   selectedStartTime: string | null = null;
   selectedDay: Date | null = null;
 
-  constructor(private datePipe: DatePipe) { }
+  booking = {
+    name: '',
+    email: '',
+    phoneNumber: '',
+  };
+
+  bookingForm: any;
+  dateToday = new Date();
+  bookingService: any;
+  selectedEndTime: string | null = null; // New property to store selected end time as string
+
+  selectStartTime(day: Date, startTime: string): void {
+    this.selectedDay = new Date(day); // Clone to avoid mutating original date
+    const startHours = parseInt(startTime.split(':')[0]);
+    const startMinutes = parseInt(startTime.split(':')[1]);
+    this.selectedDay.setHours(startHours, startMinutes, 0);
+    this.selectedStartTime = startTime;
+    this.calculateEndTime(); // Calculate the ending time based on the selected start time and duration
+    this.updateSelectedSlots();
+  }
+
+  selectDuration(duration: number): void {
+    this.selectedDuration = duration;
+    if (this.selectedStartTime && this.selectedDay) {
+      this.calculateEndTime(); // Recalculate end time when duration changes
+    }
+    this.updateSelectedSlots();
+  }
+
+  calculateEndTime(): void {
+    if (this.selectedDay && this.selectedDuration) {
+      const endTime = new Date(this.selectedDay.getTime() + this.selectedDuration * 60000);
+      this.selectedEndTime = this.datePipe.transform(endTime, 'HH:mm')!;
+    }
+  }
+
+
+  constructor(
+    private datePipe: DatePipe,
+    ) { }
 
   ngOnInit(): void {
     this.calculateDaysInWeek();
@@ -53,11 +92,6 @@ export class CalendarComponent implements OnInit {
     return timeSlots;
   }
 
-  selectStartTime(day: Date, time: string): void {
-    this.selectedDay = day;
-    this.selectedStartTime = time;
-    this.updateSelectedSlots();
-  }
 
   updateSelectedSlots(): void {
     if (!this.selectedStartTime || !this.selectedDay) return;
@@ -71,7 +105,6 @@ export class CalendarComponent implements OnInit {
         day.timeSlots.forEach(slot => {
           const slotTime = new Date(day.date);
           slotTime.setHours(parseInt(slot.time.split(':')[0]), parseInt(slot.time.split(':')[1]), 0);
-
           slot.isSelected = slotTime >= currentTime && slotTime < new Date(currentTime.getTime() + durationInMinutes * 60000);
         });
       } else {
@@ -98,17 +131,46 @@ export class CalendarComponent implements OnInit {
   formatDate(date: Date): string {
     return this.datePipe.transform(date, 'MMMM dd, yyyy')!;
   }
-  selectDuration(duration: number): void {
-    this.selectedDuration = duration;
-    this.updateSelectedSlots();
-  }
+
   isToday(date: Date): boolean {
     const today = new Date();
-    console.log(date.getDate() === today.getDate() &&
-    date.getMonth() === today.getMonth() &&
-    date.getFullYear() === today.getFullYear());
     return date.getDate() === today.getDate() &&
            date.getMonth() === today.getMonth() &&
            date.getFullYear() === today.getFullYear();
+  }
+  submitBooking() {
+    if (this.bookingForm.invalid) {
+      // Form validation failed, do not submit
+      return;
+    }
+
+    // Call the booking service to submit the booking
+    this.bookingService.submitBooking(this.booking).subscribe(
+      () => {
+        // Booking successfully submitted
+        alert('Booking submitted successfully!');
+        // Reset the form
+        this.resetForm();
+      },
+      (error: any) => {
+        // Error occurred while submitting booking
+        console.error('Error submitting booking:', error);
+        alert('An error occurred while submitting your booking. Please try again later.');
+      }
+    );
+  }
+
+  resetForm() {
+    this.booking = {
+      name: '',
+      email: '',
+      phoneNumber: '',
+    };
+  }
+  endingTime(): Date | null{
+    const endingTime = this.selectedDay;
+
+    endingTime?.setMinutes(endingTime?.getMinutes() + this.selectedDuration);
+    return endingTime
   }
 }
