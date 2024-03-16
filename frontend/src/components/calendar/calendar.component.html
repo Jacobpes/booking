@@ -16,12 +16,14 @@
 <table class="week-table">
   <thead>
     <tr>
-      <th *ngFor="let day of daysInWeek">{{ day.date | date: 'EEE, d MMM' }}</th>
+      <th *ngFor="let day of daysInWeek" [ngClass]="{'today': isToday(day.date)}">
+        {{ day.date | date: 'EEE, d MMM' }}
+      </th>
     </tr>
   </thead>
   <tbody>
     <tr>
-      <td *ngFor="let day of daysInWeek" [class.today]="isToday(day.date)">
+      <td *ngFor="let day of daysInWeek" [ngClass]="{'today': isToday(day.date)}">
         <div class="time-slots">
           <div *ngFor="let timeSlot of day.timeSlots" class="time-slot" [class.selected]="timeSlot.isSelected" (click)="selectStartTime(day.date, timeSlot.time)">
             {{ timeSlot.time }}
@@ -32,5 +34,31 @@
   </tbody>
 </table>
 
-
-<app-booking-form></app-booking-form>
+<form (ngSubmit)="submitBooking()" #bookingForm="ngForm" class="booking-form-container">
+  <div class="form-group">
+    <label for="name">Name</label>
+    <input type="text" id="name" name="name" required [(ngModel)]="booking.name" #name="ngModel" aria-required="true" placeholder="Enter your name">
+    <div *ngIf="name.invalid && (name.dirty || name.touched)" class="error-message">
+      <div *ngIf="name.errors">Name is required.</div>
+    </div>
+  </div>
+  <div class="form-group">
+    <label for="email">Email</label>
+    <input type="email" id="email" name="email" required [(ngModel)]="booking.email" #email="ngModel" aria-required="true" placeholder="Enter your email">
+    <div *ngIf="email.invalid && (email.dirty || email.touched)" class="error-message">
+      <div *ngIf="email.errors">Email is required.</div>
+    </div>
+  </div>
+  <div class="form-group">
+    <label for="phoneNumber">Phone Number</label>
+    <input type="tel" id="phoneNumber" name="phoneNumber" required [(ngModel)]="booking.phoneNumber" #phoneNumber="ngModel" aria-required="true" placeholder="Enter your phone number">
+    <div *ngIf="phoneNumber.invalid && (phoneNumber.dirty || phoneNumber.touched)" class="error-message">
+      <div *ngIf="phoneNumber.errors">Phone number is required.</div>
+    </div>
+  </div>
+  <div *ngIf="selectedDay" class="form-group">
+    <label for="timeLength">Selected time and date</label>
+    <p>From {{ selectedDay | date : 'dd/MM/yyyy HH:mm' }} to {{ (endingTime() | date : 'HH:mm') }}</p>
+  </div>
+  <button type="submit" [disabled]="bookingForm.invalid">Submit Booking</button>
+</form>

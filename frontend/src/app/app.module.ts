@@ -6,7 +6,6 @@ import { AppComponent } from './app.component';
 import { HttpClientModule } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { CalendarComponent } from 'src/components/calendar/calendar.component';
-import { BookingFormComponent } from 'src/components/booking-form/booking-form.component';
 import { ConfirmationComponent } from 'src/components/confirmation/confirmation.component';
 import { DatePipe } from '@angular/common';
 
@@ -14,7 +13,6 @@ import { DatePipe } from '@angular/common';
   declarations: [
     AppComponent,
     CalendarComponent,
-    BookingFormComponent,
     ConfirmationComponent,
   ],
   imports: [

@@ -14,6 +14,17 @@ export class CalendarComponent implements OnInit {
   selectedStartTime: string | null = null;
   selectedDay: Date | null = null;
 
+  booking = {
+    name: '',
+    email: '',
+    phoneNumber: '',
+  };
+
+  bookingForm: any;
+  dateToday = new Date();
+  bookingService: any;
+
+
   constructor(
     private stateService: StateService,
     private datePipe: DatePipe,
@@ -57,12 +68,15 @@ export class CalendarComponent implements OnInit {
     return timeSlots;
   }
 
-  selectStartTime(day: Date, time: string): void {
+  selectStartTime(day: Date, startTime: string): void {
+    // format selected day to set time to startTime string parameter
+    day.setHours(parseInt(startTime.split(':')[0]), parseInt(startTime.split(':')[1]), 0);
     this.selectedDay = day;
-    this.selectedStartTime = time;
-    this.stateService.setSelectedStartTime(time);
+    this.selectedStartTime = startTime;
+    this.stateService.setSelectedStartTime(startTime);
+    this.stateService.setSelectedDay(day);
     this.updateSelectedSlots();
-    console.log(this.stateService.selectedStartTime, this.stateService.selectedDuration);
+    console.log("Start time: ", this.stateService.selectedStartTime, "\n", this.stateService.selectedDuration, " minutes", "\n", this.stateService.selectedDay);
   }
 
   updateSelectedSlots(): void {
@@ -77,7 +91,6 @@ export class CalendarComponent implements OnInit {
         day.timeSlots.forEach(slot => {
           const slotTime = new Date(day.date);
           slotTime.setHours(parseInt(slot.time.split(':')[0]), parseInt(slot.time.split(':')[1]), 0);
-
           slot.isSelected = slotTime >= currentTime && slotTime < new Date(currentTime.getTime() + durationInMinutes * 60000);
         });
       } else {
@@ -104,19 +117,52 @@ export class CalendarComponent implements OnInit {
   formatDate(date: Date): string {
     return this.datePipe.transform(date, 'MMMM dd, yyyy')!;
   }
+
   selectDuration(duration: number): void {
     this.selectedDuration = duration;
     this.stateService.setSelectedDuration(duration);
     this.updateSelectedSlots();
-    console.log(this.stateService.selectedStartTime, this.stateService.selectedDuration);
   }
+
   isToday(date: Date): boolean {
     const today = new Date();
-    console.log(date.getDate() === today.getDate() &&
-    date.getMonth() === today.getMonth() &&
-    date.getFullYear() === today.getFullYear());
     return date.getDate() === today.getDate() &&
            date.getMonth() === today.getMonth() &&
            date.getFullYear() === today.getFullYear();
+  }
+  submitBooking() {
+    if (this.bookingForm.invalid) {
+      // Form validation failed, do not submit
+      return;
+    }
+
+    // Call the booking service to submit the booking
+    this.bookingService.submitBooking(this.booking).subscribe(
+      () => {
+        // Booking successfully submitted
+        alert('Booking submitted successfully!');
+        // Reset the form
+        this.resetForm();
+      },
+      (error: any) => {
+        // Error occurred while submitting booking
+        console.error('Error submitting booking:', error);
+        alert('An error occurred while submitting your booking. Please try again later.');
+      }
+    );
+  }
+
+  resetForm() {
+    this.booking = {
+      name: '',
+      email: '',
+      phoneNumber: '',
+    };
+  }
+  endingTime(): Date | null{
+    const endingTime = this.selectedDay;
+
+    endingTime?.setMinutes(endingTime?.getMinutes() + this.selectedDuration);
+    return endingTime
   }
 }
